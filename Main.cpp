@@ -21,12 +21,12 @@ void sleep(unsigned int time) {
 void game_init() {
 	game->setViZDoomPath("../vizdoom/vizdoom");	//задаем путь к исполняемому движку
 	game->setDoomGamePath("../vizdoom/freedoom2.wad");	//устанавливаем путь к файлу
-	game->loadConfig("../vizdoom/scenarios/basic.cfg");	//загружаем конфигурацию
+	game->loadConfig("../vizdoom/scenarios/basic.cfg");	//загружаем конфигурацию, сценарий игры
 	game->setScreenResolution(RES_640X480); 	//устанавливаем разрешение экрана
 	game->setLabelsBufferEnabled(true); 	// включаем буфер lable
 	game->setWindowVisible(true); 	//делаем окно видимым
 	game->setRenderWeapon(true);  //добавляем оружие игрока
-	game->setRenderHud(true); //добавляем индикатор
+	game->setRenderHud(true); //добавляем меню 
 	game->init(); 	//инициализируем игру
 }
 
@@ -47,7 +47,7 @@ int main() {
 	game_init();
 
 	int episodes = 10;
-	unsigned int sleepTime = 2000 / DEFAULT_TICRATE;
+	unsigned int sleepTime = 2000 / DEFAULT_TICRATE; //пауза после действия, замедляет игру
 	for (int i = 0; i < episodes; ++i) {
 		std::cout << "Episode #" << i + 1 << "\n";
 		game->newEpisode();
@@ -59,7 +59,7 @@ int main() {
 			sleep(sleepTime);
 		}
 		sleep(sleepTime * 10);
-		std::cout << "Total reward is: " << game->getTotalReward() << std::endl;
+		std::cout << "Total reward is: " << game->getTotalReward() << std::endl; //очки
 	}
 	game->close();
 	delete game;
