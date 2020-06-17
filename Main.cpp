@@ -19,27 +19,27 @@ void sleep(unsigned int time) {
 }
 
 void game_init() {
-	game->setViZDoomPath("../vizdoom/vizdoom");
-	game->setDoomGamePath("../vizdoom/freedoom2.wad");
-	game->loadConfig("../vizdoom/scenarios/basic.cfg");
-	game->setScreenResolution(RES_640X480);
-	game->setLabelsBufferEnabled(true); // add this
-	game->setWindowVisible(true);
-	game->setRenderWeapon(true);
-	game->setRenderHud(true);
-	game->init();
+	game->setViZDoomPath("../vizdoom/vizdoom");	//задаем путь к исполняемому движку
+	game->setDoomGamePath("../vizdoom/freedoom2.wad");	//устанавливаем путь к файлу
+	game->loadConfig("../vizdoom/scenarios/basic.cfg");	//загружаем конфигурацию
+	game->setScreenResolution(RES_640X480); 	//устанавливаем разрешение экрана
+	game->setLabelsBufferEnabled(true); 	// включаем буфер lable
+	game->setWindowVisible(true); 	//делаем окно видимым
+	game->setRenderWeapon(true);  //добавляем оружие игрока
+	game->setRenderHud(true); //добавляем индикатор
+	game->init(); 	//инициализируем игру
 }
 
 void find_demon_and_kill(GameStatePtr state) {
-	double eps = 10; // monster's width
+	double eps = 10; // monster's width (ширина монстра)
 	if (state->labels[0].objectPositionY - eps > state->labels[1].objectPositionY) {
 		game->makeAction(actions[0]); //left
-	}
+	}	//проверяем положение человека относительно демона: если находимся правее, то передвигаемся в левую сторону
 	else if (state->labels[0].objectPositionY + eps < state->labels[1].objectPositionY) {
 		game->makeAction(actions[1]); //right
-	}
+	}	//проверяем положение человека относительно демона: если находимся левее, то передвигаемся в правую сторону
 	else {
-		game->makeAction(actions[2]); // shoot
+		game->makeAction(actions[2]); // shoot (стреляем в демона)
 	}
 }
 
