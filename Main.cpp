@@ -1,10 +1,129 @@
-
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <ViZDoom.h>
 #include <chrono>
 #include <thread>
+#include <opencv2/core/mat.hpp>
 
+
+
+std::string path = "C:\\practice\\vizdoom";
+auto game = std::make_unique<vizdoom::DoomGame>();
+const unsigned int sleepTime = 1000 / vizdoom::DEFAULT_TICRATE;
+auto screenBuff = cv::Mat(480, 640, CV_8UC3);
+
+void RunTask1(int episodes)
+{
+	try
+	{
+		game->loadConfig(path + "\\scenarios\\task1.cfg");
+		game->init(); 	
+	}
+	catch(std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	auto greyscale = cv::Mat(480, 640, CV_8UC1);
+	std::vector<double> action;
+	cv::Mat labels;
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
+		
+		while (!game->isEpisodeFinished())
+		{
+			//версия с кластерами: 
+			
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+			cv::extractChannel(screenBuff, greyscale, 2);
+
+			cv::threshold(greyscale, greyscale, 200, 255, cv::THRESH_BINARY);
+
+			std::vector<cv::Point2f> data(0);
+			for (int l = 0; l < 640; l++)
+			{
+				for (int j = 0; j < 480; j++)
+				{
+					if ((int)greyscale.at<unsigned char>(j,l) == 255) {
+						data.push_back(cv::Point2f(l, j));
+						
+					}
+				}
+				
+			}
+		
+			
+			//cv::Mat   bestLabels, centers;
+
+			//std::vector<cv::Point> centers;
+			//cv::kmeans(greyscale, 2, bestLabels, cv::TermCriteria(cv::TermCriteria::EPS, max, eps), 10, cv::KMEANS_PP_CENTERS, centers);
+			
+			/*
+			cv::Mat data = greyscale;
+			data = data.reshape(1, data.cols / 2); // n rows a 2 cols
+			data.convertTo(data, CV_32F);
+			*/
+			
+			
+			std::vector<cv::Point2f> centers;
+			greyscale.convertTo(greyscale, CV_32F);
+
+			cv::kmeans(data, 2, labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 10, 1.0), 3, cv::KMEANS_RANDOM_CENTERS, centers);
+			greyscale.convertTo(greyscale, CV_8UC1);
+
+			//centers = centers.reshape(2, centers.rows);
+			//data = data.reshape(2, data.rows);
+
+			//cv::circle(greyscale, cv::Point(centers.at<float>(0, 0), centers.at<float>(0, 1)), 4, cv::Scalar(200), 5);
+			cv::Point center = centers[0];
+			cv::circle(greyscale,center, 4, cv::Scalar(200,0,0), 5);
+			//centers[0].
+			
+
+			 
+			
+			cv::imshow("Output Window", greyscale);
+			
+			double reward = game->makeAction({ 0, 0, 0 });
+			
+			
+			cv::waitKey(sleepTime);
+			
+			
+		}
+
+
+		std::cout << std::endl << game->getTotalReward() << std::endl;
+	}
+	
+
+}
+
+
+
+int main()
+{
+	game->setViZDoomPath(path + "\\vizdoom.exe");	
+	game->setDoomGamePath(path + "\\freedoom2.wad");	
+
+	cv::namedWindow("Output Window", cv::WINDOW_AUTOSIZE);
+	auto episides = 10;
+
+	//=======================
+	RunTask1(episides);
+	//=======================
+
+	game->close();
+}
+
+
+
+
+/*
 using namespace vizdoom;
 
 DoomGame* game = new DoomGame();
@@ -64,3 +183,4 @@ int main() {
 	game->close();
 	delete game;
 }
+*/
