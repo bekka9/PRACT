@@ -88,7 +88,33 @@ void RunTask1(int episodes)
 			
 			cv::imshow("Output Window", greyscale);
 			
-			double reward = game->makeAction({ 0, 0, 0 });
+			float y1 = centers[0].y;
+			float y2 = centers[1].y;
+			if (y2 < y1) { // тогда y[0] демон
+				double eps = 9; // monster's width
+				if (centers[0].x + 9 < centers[1].x) {
+					game->makeAction({ 0, 1, 0 }); //
+				}
+				else if (centers[0].x - 9 > centers[1].x) {
+					game->makeAction({ 1, 0, 0 }); //
+				}
+				else {
+					game->makeAction({ 0, 0, 1}); // shoot
+				}
+			}
+			else {
+				double eps = 9; // monster's width
+				if (centers[0].x - 9 > centers[1].x) {
+					game->makeAction({ 0, 1, 0 }); //
+				}
+				else if (centers[0].x + 9 < centers[1].x) {
+					game->makeAction({ 1, 0, 0 }); //
+				}
+				else {
+					game->makeAction({ 0, 0, 1 }); // shoot
+				}
+			}
+			
 			
 			
 			cv::waitKey(sleepTime);
