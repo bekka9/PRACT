@@ -89,23 +89,23 @@ void RunTask1(int episodes)
 			double eps = 21;
 			if (y2 < y1) { // тогда y[0] демон 
 
-				if (centers[0].x + eps < centers[1].x) {
-					game->makeAction({ 0, 1, 0 }); //
+				if (centers[0].x + 36 < centers[1].x) {
+					game->makeAction({ 0, 1, 0 }); // лево
 				}
-				else if (centers[0].x - eps > centers[1].x) {
-					game->makeAction({ 1, 0, 0 }); //
+				else if (centers[0].x - 30 > centers[1].x) {
+					game->makeAction({ 1, 0, 0 }); // право
 				}
 				else {
 					game->makeAction({ 0, 0, 1 }); // shoot
 				}
 			}
 			else {
-				 
-				if (centers[0].x - eps > centers[1].x) {
-					game->makeAction({ 0, 1, 0 }); //
+
+				if (centers[1].x + 35 < centers[0].x) {
+					game->makeAction({ 0, 1, 0 }); //лево
 				}
-				else if (centers[0].x + eps < centers[1].x) {
-					game->makeAction({ 1, 0, 0 }); //
+				else if (centers[1].x - 30 > centers[0].x) {
+					game->makeAction({ 1, 0, 0 }); // право
 				}
 				else {
 					game->makeAction({ 0, 0, 1 }); // shoot
