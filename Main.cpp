@@ -5,13 +5,12 @@
 #include <thread>
 #include <opencv2/core/mat.hpp>
 
-
-
 std::string path = "C:\\practice\\vizdoom";
 auto game = std::make_unique<vizdoom::DoomGame>();
 const unsigned int sleepTime = 1000 / vizdoom::DEFAULT_TICRATE;
 auto screenBuff = cv::Mat(480, 640, CV_8UC3);
 double s;
+
 void RunTask1(int episodes)
 {
 	try
@@ -81,7 +80,6 @@ void RunTask1(int episodes)
 			//cv::circle(greyscale, cv::Point(centers.at<float>(0, 0), centers.at<float>(0, 1)), 4, cv::Scalar(200), 5);
 			cv::Point center = centers[0];
 			cv::circle(greyscale,center, 4, cv::Scalar(200,0,0), 5);
-			//centers[0].
 			
 			
 			float y1 = centers[0].y;
@@ -126,7 +124,106 @@ void RunTask1(int episodes)
 	std::cout << std::endl << "Arithmetic mean of 10 ep: " << s / 10 << std::endl;
 }
 
+void RunTask2(int episodes)
+{
+	try
+	{
+		game->loadConfig(path + "\\scenarios\\task2.cfg");
+		
+		game->init();
+		
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	auto greyscale = cv::Mat(480, 640, CV_8UC1);
+	std::vector<double> action;
+	cv::Mat labels;
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
 
+		while (!game->isEpisodeFinished())
+		{
+			
+
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+			cv::extractChannel(screenBuff, greyscale, 2);
+
+			cv::threshold(greyscale, greyscale, 200, 255, cv::THRESH_BINARY);
+
+			std::vector<cv::Point2f> data(0);
+			
+			for (int l = 0; l < 640; l++)
+			{
+				for (int j = 0; j < 480; j++)
+				{
+					if ((int)greyscale.at<unsigned char>(j, l) == 255) {
+						data.push_back(cv::Point2f(l, j));
+						
+					}
+				}
+
+			}
+
+			
+			std::vector<cv::Point2f> centers;
+			greyscale.convertTo(greyscale, CV_32F);
+			
+			cv::kmeans(data, 2, labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 10, 1.0), 3, cv::KMEANS_RANDOM_CENTERS, centers);
+			greyscale.convertTo(greyscale, CV_8UC1);
+
+
+			cv::Point center = centers[0];
+			cv::circle(greyscale, center, 4, cv::Scalar(200, 0, 0), 5);
+			
+			float y1 = centers[0].y;
+			float y2 = centers[1].y;
+			
+			if (y2 < y1) { // тогда y[0] демон
+
+				if (centers[0].x + 36 < centers[1].x) {
+					game->makeAction({ 0, 1, 0 ,0 }); //
+				}
+				else if (centers[0].x - 30 > centers[1].x) {
+					game->makeAction({ 1, 0, 0, 0 }); //
+				}
+				else {
+					game->makeAction({ 0, 0, 0, 1 }); // shoot
+				}
+			}
+			else {
+
+				if (centers[0].x - 35 > centers[1].x) {
+					game->makeAction({ 0, 1, 0, 0 }); //
+				}
+				else if (centers[0].x + 30 < centers[1].x) {
+					game->makeAction({ 1, 0, 0, 0 }); //
+				}
+				else {
+					game->makeAction({ 0, 0, 0, 1 }); // shoot
+				}
+			}
+			
+			cv::imshow("Output Window", greyscale);
+			cv::waitKey(sleepTime);
+
+
+
+		}
+
+		s = s + game->getTotalReward();
+
+		std::cout << std::endl << game->getTotalReward() << std::endl;
+	}
+
+	std::cout << std::endl << "Arithmetic mean of 10 ep: " << s / 10 << std::endl;
+}
 
 int main()
 {
@@ -145,7 +242,7 @@ int main()
 
 
 
-
+//версия без opencv
 /*
 using namespace vizdoom;
 
