@@ -185,25 +185,25 @@ void RunTask2(int episodes)
 			float y1 = centers[0].y;
 			float y2 = centers[1].y;
 			
-			if (y2 < y1) { // тогда y[0] демон
+			if (y2 < y1) { // тогда y[0] демон 
 
-				if (centers[0].x + 36 < centers[1].x) {
-					game->makeAction({ 0, 1, 0 ,0 }); //
+				if (centers[0].x + 38 < centers[1].x) {
+					game->makeAction({ 0, 1, 0, 0 }); 
 				}
-				else if (centers[0].x - 30 > centers[1].x) {
-					game->makeAction({ 1, 0, 0, 0 }); //
+				else if (centers[0].x - 41 > centers[1].x) {
+					game->makeAction({ 1, 0, 0, 0 }); 
 				}
 				else {
-					game->makeAction({ 0, 0, 0, 1 }); // shoot
+					game->makeAction({ 0, 0, 0, 1 }); 
 				}
 			}
 			else {
 
-				if (centers[0].x - 35 > centers[1].x) {
-					game->makeAction({ 0, 1, 0, 0 }); //
+				if (centers[1].x + 38 < centers[0].x) {
+					game->makeAction({ 0, 1, 0, 0 }); 
 				}
-				else if (centers[0].x + 30 < centers[1].x) {
-					game->makeAction({ 1, 0, 0, 0 }); //
+				else if (centers[1].x - 41 > centers[0].x) {
+					game->makeAction({ 1, 0, 0, 0 }); 
 				}
 				else {
 					game->makeAction({ 0, 0, 0, 1 }); // shoot
