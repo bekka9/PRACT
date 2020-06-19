@@ -11,7 +11,7 @@ std::string path = "C:\\practice\\vizdoom";
 auto game = std::make_unique<vizdoom::DoomGame>();
 const unsigned int sleepTime = 1000 / vizdoom::DEFAULT_TICRATE;
 auto screenBuff = cv::Mat(480, 640, CV_8UC3);
-
+double s;
 void RunTask1(int episodes)
 {
 	try
@@ -83,31 +83,28 @@ void RunTask1(int episodes)
 			cv::circle(greyscale,center, 4, cv::Scalar(200,0,0), 5);
 			//centers[0].
 			
-
-			 
-			
-			cv::imshow("Output Window", greyscale);
 			
 			float y1 = centers[0].y;
 			float y2 = centers[1].y;
-			if (y2 < y1) { // тогда y[0] демон
-				double eps = 9; // monster's width
-				if (centers[0].x + 9 < centers[1].x) {
+			double eps = 21;
+			if (y2 < y1) { // тогда y[0] демон 
+
+				if (centers[0].x + eps < centers[1].x) {
 					game->makeAction({ 0, 1, 0 }); //
 				}
-				else if (centers[0].x - 9 > centers[1].x) {
+				else if (centers[0].x - eps > centers[1].x) {
 					game->makeAction({ 1, 0, 0 }); //
 				}
 				else {
-					game->makeAction({ 0, 0, 1}); // shoot
+					game->makeAction({ 0, 0, 1 }); // shoot
 				}
 			}
 			else {
-				double eps = 9; // monster's width
-				if (centers[0].x - 9 > centers[1].x) {
+				 
+				if (centers[0].x - eps > centers[1].x) {
 					game->makeAction({ 0, 1, 0 }); //
 				}
-				else if (centers[0].x + 9 < centers[1].x) {
+				else if (centers[0].x + eps < centers[1].x) {
 					game->makeAction({ 1, 0, 0 }); //
 				}
 				else {
@@ -116,17 +113,17 @@ void RunTask1(int episodes)
 			}
 			
 			
-			
+			cv::imshow("Output Window", greyscale);
 			cv::waitKey(sleepTime);
 			
 			
 		}
 
-
+		s = s + game->getTotalReward();
 		std::cout << std::endl << game->getTotalReward() << std::endl;
 	}
 	
-
+	std::cout << std::endl << "Arithmetic mean of 10 ep: " << s / 10 << std::endl;
 }
 
 
