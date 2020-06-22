@@ -224,6 +224,118 @@ void RunTask2(int episodes)
 
 	std::cout << std::endl << "Arithmetic mean of 10 ep: " << s / 10 << std::endl;
 }
+void RunTask3(int episodes)
+{
+	try
+	{
+		game->loadConfig(path + "\\scenarios\\task3.cfg");
+
+		game->init();
+
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	auto greyscale = cv::Mat(480, 640, CV_8UC1);
+	std::vector<double> action;
+	cv::Mat labels;
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
+
+		while (!game->isEpisodeFinished())
+		{
+			//версия с кластерами: 
+
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+			cv::extractChannel(screenBuff, greyscale, 2);
+
+			cv::threshold(greyscale, greyscale, 210, 255, cv::THRESH_BINARY);
+
+			std::vector<cv::Point2f> data(0);
+
+			for (int l = 0; l < 640; l++)
+			{
+				for (int j = 0; j < 410; j++)
+				{
+					if ((int)greyscale.at<unsigned char>(j, l) == 255) {
+						data.push_back(cv::Point2f(l, j));
+
+					}
+				}
+
+			}
+
+			std::vector<cv::Point2f> centers;
+			//greyscale.convertTo(greyscale, CV_32F);
+			//if (data.empty() == 1) 
+			
+			if ( data.size() > 1) {
+				greyscale.convertTo(greyscale, CV_32F);
+				cv::kmeans(data, 2, labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 10, 1.0), 3, cv::KMEANS_RANDOM_CENTERS, centers);
+				greyscale.convertTo(greyscale, CV_8UC1);
+
+				int d1 = pow(centers[0].x - 320, 2) + pow(centers[0].y - 410, 2);
+				int d2 = pow(centers[1].x - 320, 2) + pow(centers[1].y - 410, 2);
+
+				int centery = 0;
+				int centerx = 0;
+
+				if (d1 < d2) {
+					centerx = centers[0].x;
+					centery = centers[0].y;
+				}
+				else {
+					centerx = centers[1].x;
+					centery = centers[1].y;
+				}
+				cv::circle(greyscale, cv::Point(centerx, centery), 4, cv::Scalar(200, 0, 0), 5);
+
+				if (centerx < 320 - 50) {
+					game->makeAction({ 1, 0, 0, 0 });
+					game->makeAction({ 1, 0, 0, 0 });
+
+
+				}
+				else if (centerx > 320 + 40) {
+					game->makeAction({ 0, 1, 0, 0 });
+					game->makeAction({ 0, 1, 0, 0 });
+
+				}
+				
+				else {
+					game->makeAction({ 0, 0, 0, 1 });
+				}
+				game->makeAction({ 0, 0, 0, 1 });
+
+			}
+			
+			else {
+				game->makeAction({ 0, 0, 1, 0 });
+				game->makeAction({ 0, 0, 1, 0 });
+				
+				game->makeAction({ 0, 1, 0, 0 });
+			}
+
+
+
+			cv::imshow("Output Window", greyscale);
+
+			cv::waitKey(1);
+
+		}
+
+
+		std::cout << std::endl << game->getTotalReward() << std::endl;
+	}
+
+	std::cout << std::endl << "Arithmetic mean of 10 ep: " << s / 10 << std::endl;
+}
 
 int main()
 {
