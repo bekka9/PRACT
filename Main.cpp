@@ -336,7 +336,112 @@ void RunTask3(int episodes)
 
 	std::cout << std::endl << "Arithmetic mean of 10 ep: " << s / 10 << std::endl;
 }
+void RunTask4(int episodes)
+{
+	try
+	{
+		game->loadConfig(path + "\\scenarios\\task4.cfg");
 
+		game->init();
+
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	auto greyscale = cv::Mat(480, 640, CV_8UC1);
+	std::vector<double> action;
+	cv::Mat labels;
+	int s = 0; 
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
+
+		while (!game->isEpisodeFinished())
+		{
+			
+
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+			cv::extractChannel(screenBuff, greyscale, 2);
+
+			cv::threshold(greyscale, greyscale, 180, 255, cv::THRESH_BINARY);
+
+			std::vector<cv::Point2f> data(0);
+
+			for (int l = 0; l < 640; l++)
+			{
+				for (int j = 0; j < 410; j++)
+				{
+					if ((int)greyscale.at<unsigned char>(j, l) == 255) {
+						data.push_back(cv::Point2f(l, j));
+
+					}
+				}
+
+			}
+
+			std::vector<cv::Point2f> centers;
+			if (data.size() > 0) {
+				greyscale.convertTo(greyscale, CV_32F);
+				cv::kmeans(data, 1, labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 10, 1.0), 3, cv::KMEANS_RANDOM_CENTERS, centers);
+				greyscale.convertTo(greyscale, CV_8UC1);
+				
+				
+				
+
+				
+					int centerx = centers[0].x;
+					int centery = centers[0].y;
+				
+				
+				
+				
+				if (centerx < 320 - 50) {
+					game->makeAction({ 1, 0, 0, 0 });
+					game->makeAction({ 1, 0, 0, 0 });
+
+
+				}
+				else if (centerx > 320 + 40) {
+					game->makeAction({ 0, 1, 0, 0 });
+					game->makeAction({ 0, 1, 0, 0 });
+
+				}
+
+				else {
+					game->makeAction({ 0, 0, 0, 1 });
+				}
+				game->makeAction({ 0, 0, 0, 1 });
+
+			}
+
+			else {
+				game->makeAction({ 0, 0, 1, 0 });
+				game->makeAction({ 0, 0, 1, 0 });
+
+				game->makeAction({ 0, 1, 0, 0 });
+			}
+			
+
+
+			cv::imshow("Output Window", greyscale);
+
+			cv::waitKey(sleepTime);
+
+		}
+
+
+		std::cout << std::endl << game->getTotalReward() << std::endl;
+		s += game->getTotalReward();
+
+	}
+
+	std::cout << std::endl << "Arithmetic mean of 10 ep: " << float(s / 10) << std::endl;
+}
 int main()
 {
 	game->setViZDoomPath(path + "\\vizdoom.exe");	
