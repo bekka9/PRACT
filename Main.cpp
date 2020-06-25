@@ -442,6 +442,194 @@ void RunTask4(int episodes)
 
 	std::cout << std::endl << "Arithmetic mean of 10 ep: " << float(s / 10) << std::endl;
 }
+
+void RunTask5(int episodes)
+{
+
+	try
+	{
+		game->loadConfig(path + "\\scenarios\\task5.cfg");
+
+		game->init();
+
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	auto greyscale = cv::Mat(480, 640, CV_8UC1);
+	std::vector<double> action;
+	cv::Mat labels;
+	for (auto i = 0; i < episodes; i++)
+	{
+		game->newEpisode();
+		std::cout << "Episode #" << i + 1 << std::endl;
+
+		while (!game->isEpisodeFinished())
+		{
+			
+
+			const auto& gamestate = game->getState();
+
+			std::memcpy(screenBuff.data, gamestate->screenBuffer->data(), gamestate->screenBuffer->size());
+
+
+			cv::Mat img = screenBuff; //скрин экрана
+
+			cv::Mat dst;
+
+
+			cv::Canny(img, dst, 10, 180, 3, false);
+
+			//cvShowImage("cvCanny", dst);
+
+
+
+			cv::imshow("cvCanny", dst);
+
+
+			cv::extractChannel(screenBuff, greyscale, 2);
+
+			cv::threshold(greyscale, greyscale, 230, 255, cv::THRESH_BINARY_INV);
+
+			std::vector<cv::Point2f> data(0);
+
+			for (int l = 0; l < 640; l++)
+			{
+				for (int j = 100; j < 410; j++)
+				{
+					if ((int)greyscale.at<unsigned char>(j, l) == 0) {
+						data.push_back(cv::Point2f(l, j));
+
+					}
+				}
+
+			}
+			bool stena_s_prava = false;
+			bool stena_s_leva = false;
+			for (int l = 340; l < 370; l++)
+			{
+				for (int j = 0; j < 10; j++)
+				{
+					if ((int)dst.at<unsigned char>(j, l) == 255) {
+						stena_s_prava = true;
+						break;
+					}
+				}
+
+			}
+			for (int l = 270; l < 300; l++)
+			{
+				for (int j = 0; j < 10; j++)
+				{
+					if ((int)dst.at<unsigned char>(j, l) == 255) {
+						stena_s_leva = true;
+						break;
+					}
+				}
+
+			}
+
+			
+
+			std::vector<cv::Point2f> centers;
+			
+			
+			if (data.size() > 3) {
+				greyscale.convertTo(greyscale, CV_32F);
+
+				cv::kmeans(data, 4, labels, cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 10, 1.0), 3, cv::KMEANS_RANDOM_CENTERS, centers);
+				greyscale.convertTo(greyscale, CV_8UC1);
+				for (int i = 0; i < 4; i++)
+				{
+					cv::circle(greyscale, centers[i], 4, cv::Scalar(200, 0, 0), 5);
+
+					//cv::circle(greyscale, centers[0], 4, cv::Scalar(200, 0, 0), 5);
+					cv::imshow("Output Window", greyscale);
+					
+					
+					//
+					if (centers[i].x < 320 - 10) { //
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+					}
+					else if (centers[i].x > 320 + 33) { //
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+
+
+					}
+					if (stena_s_prava == true) {
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+
+
+						game->makeAction({ 1, 0 });
+						game->makeAction({ 1, 0 });
+
+						game->makeAction({ 1, 0 });
+
+					}
+					else if (stena_s_leva == true) {
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+
+
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+
+
+						game->makeAction({ 0, 1 });
+						game->makeAction({ 0, 1 });
+
+					}
+
+
+
+					else if ((centers[i].x > 310) && (centers[i].x < 330))
+					{
+						game->makeAction({ 1, 0 });
+
+					}
+
+					else if ((centers[i].x > 319) && (centers[i].x < 360)) {
+						game->makeAction({ 0, 1 });
+
+					}					
+				}
+			}
+				
+			
+			
+			else {
+				game->makeAction({ 1, 0 });
+				game->makeAction({ 0, 1 });
+			}
+			
+			
+			cv::imshow("Output Window", greyscale);
+
+			cv::waitKey(1);
+
+		}
+		s = s + game->getTotalReward();
+
+		std::cout << std::endl << game->getTotalReward() << std::endl;
+	}
+
+	std::cout << std::endl << "Arithmetic mean of 10 ep: " << s / 10 << std::endl;
+	
+}
 int main()
 {
 	game->setViZDoomPath(path + "\\vizdoom.exe");	
